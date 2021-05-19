@@ -41,9 +41,10 @@ class Main extends React.Component {
   }
 
   getWeather = () => {
-    axios.get(`http://localhost:3030/weather?lat=${this.state.data.lat}&lon=${this.state.data.lon}&searchQuery=${this.state.search}`).then(response => {
-      this.setState({ dayArray: response.data })
-    })
+    axios.get(`http://localhost:3030/weather?lat=${this.state.data.lat}&lon=${this.state.data.lon}&searchQuery=${this.state.search}`)
+      .then(response => {
+        this.setState({ dayArray: response.data })
+      })
       .catch(error => {
         this.errorLog(error);
       });
