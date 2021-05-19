@@ -6,9 +6,9 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
 import Alert from 'react-bootstrap/Alert';
+import DayCard from './DayCard.js';
 
 const API_KEY = process.env.REACT_APP_API_KEY
-// const MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY
 
 class Main extends React.Component {
   constructor() {
@@ -19,6 +19,7 @@ class Main extends React.Component {
       search: '',
       toggle: false,
       maps_url: '',
+      dayArray: [],
     }
   }
 
@@ -29,7 +30,6 @@ class Main extends React.Component {
         this.setState({ data: this.state.location.data[0] });
         this.setState({ toggle: true });
         this.setState({ maps_url: `https://maps.locationiq.com/v3/staticmap?center=${this.state.data.lat},${this.state.data.lon}&zoom=12&size=500x500&key=${API_KEY}` })
-        // this.setState({ maps_url: `https://maps.googleapis.com/maps/api/staticmap?center=${this.state.data.lat},${this.state.data.lon}&zoom=12&size=500x500&key=${MAPS_API_KEY}` })
       })
       .catch(error => {
         <Alert variant="danger">{error}</Alert>
@@ -38,6 +38,19 @@ class Main extends React.Component {
 
   changeSearch = (e) => {
     this.setState({ search: e.target.value })
+  }
+
+  getWeather = () => {
+    axios.get(`http://localhost:3030/weather?lat=${this.state.data.lat}&lon=${this.state.data.lon}&searchQuery=${this.state.search}`).then(response => {
+      this.setState({ dayArray: response.data })
+    })
+      .catch(error => {
+        this.errorLog(error);
+      });
+  }
+
+  errorLog = (error) => {
+    console.error(error);
   }
 
   render() {
@@ -57,6 +70,15 @@ class Main extends React.Component {
           </Card>
           : ''
         }
+        <Button onClick={this.getWeather}>Get weather data</Button>
+        <Card>
+          {this.state.dayArray.forEach(item => {
+            { console.log(item) }
+            return <DayCard
+              day={item}
+            />
+          })}
+        </Card>
       </div >
     );
   }
