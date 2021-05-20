@@ -14,6 +14,7 @@ class Main extends React.Component {
       location: {},
       mapURL: '',
       weather: {},
+      movies: {},
     }
   }
 
@@ -30,7 +31,12 @@ class Main extends React.Component {
 
   fetchWeatherData = async () => {
     let response = await axios.get(`http://localhost:3030/weather?lon=${this.state.location.lon}&lat=${this.state.location.lat}`);
-    this.setState({ weather: response.data.data[0] });
+    this.setState({ weather: response });
+  }
+
+  fetchMovieData = async () => {
+    let response = await axios.get(`http://localhost:3030/movies?lon=${this.state.location.lon}&lat=${this.state.location.lat}`);
+    this.setState({ movies: response });
   }
 
   changeSearch = (e) => {
@@ -42,7 +48,6 @@ class Main extends React.Component {
   }
 
   render() {
-    console.log(this.state.weather);
     return (
       <div id="Main" >
         <Form>
@@ -50,16 +55,21 @@ class Main extends React.Component {
           <Form.Control onChange={this.changeSearch} type="text" placeholder="Search location here!" style={{ width: '40%', margin: '0 auto' }} />
           <Button variant="success" onClick={this.fetchLocationData}>Explore!</Button>
         </Form>
-        <Card variant="success" style={{ width: '25rem', margin: '0 auto' }}>
+        <Card style={{ width: '25rem', margin: '0 auto' }}>
           <Card.Img src={this.state.mapURL.data} alt="Map image of location" />
           <Card.Title>{this.state.location.display_name}</Card.Title>
           <Card.Text>Latitude: {this.state.location.lat}</Card.Text>
           <Card.Text>Longitude: {this.state.location.lon}</Card.Text>
         </Card>
         <Button onClick={this.fetchWeatherData}>Get weather data</Button>
-        <Card>
+        <Card style={{ width: '25rem', margin: '0 auto' }}>
           <Card.Text>On {this.state.weather.datetime}</Card.Text>
           <Card.Text>The temp was: {this.state.weather.temp} celcius</Card.Text>
+        </Card>
+        <Button onClick={this.fetchMovieData}>Get Movie data</Button>
+        <Card style={{ width: '25rem', margin: '0 auto' }}>
+          <Card.Title variant="info">Top movie from this area:</Card.Title>
+          <Card.Text>{this.state.movies.data}</Card.Text>
         </Card>
       </div >
     );
