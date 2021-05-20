@@ -57,6 +57,10 @@ class Main extends React.Component {
           <Card.Text>Longitude: {this.state.location.lon}</Card.Text>
         </Card>
         <Button onClick={this.fetchWeatherData}>Get weather data</Button>
+        <Card>
+          <Card.Text>On {this.state.weather.datetime}</Card.Text>
+          <Card.Text>The temp was: {this.state.weather.temp} celcius</Card.Text>
+        </Card>
       </div >
     );
   }
