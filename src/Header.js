@@ -6,7 +6,7 @@ class Header extends React.Component {
       <div id="Header">
         <h1>City Explorer</h1>
       </div>
-    )
+    );
   }
 }
 
