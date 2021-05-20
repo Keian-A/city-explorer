@@ -5,49 +5,36 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
-import Alert from 'react-bootstrap/Alert';
-import DayCard from './DayCard.js';
-
-const API_KEY = process.env.REACT_APP_API_KEY
 
 class Main extends React.Component {
   constructor() {
     super();
     this.state = {
-      data: [],
-      location: {},
       search: '',
-      toggle: false,
-      maps_url: '',
-      dayArray: [],
+      location: {},
+      mapURL: '',
+      weather: {},
     }
   }
 
-  searchLocation = () => {
-    axios.get(`https://us1.locationiq.com/v1/search.php?key=${API_KEY}&q=${this.state.search}&format=json`)
-      .then(data => {
-        this.setState({ location: data });
-        this.setState({ data: this.state.location.data[0] });
-        this.setState({ toggle: true });
-        this.setState({ maps_url: `https://maps.locationiq.com/v3/staticmap?center=${this.state.data.lat},${this.state.data.lon}&zoom=12&size=500x500&key=${API_KEY}` })
-      })
-      .catch(error => {
-        <Alert variant="danger">{error}</Alert>
-      });
+  fetchMapData = async () => {
+    let response = await axios.get(`http://localhost:3030/map?lon=${this.state.location.lon}&lat=${this.state.location.lat}`);
+    this.setState({ mapURL: response });
+  }
+
+  fetchLocationData = async () => {
+    let response = await axios.get(`http://localhost:3030/location?searchQuery=${this.state.search}`);
+    this.setState({ location: response.data });
+    await this.fetchMapData();
+  }
+
+  fetchWeatherData = async () => {
+    let response = await axios.get(`http://localhost:3030/weather?lon=${this.state.location.lon}&lat=${this.state.location.lat}`);
+    this.setState({ weather: response.data.data[0] });
   }
 
   changeSearch = (e) => {
-    this.setState({ search: e.target.value })
-  }
-
-  getWeather = () => {
-    axios.get(`http://localhost:3030/weather?lat=${this.state.data.lat}&lon=${this.state.data.lon}&searchQuery=${this.state.search}`)
-      .then(response => {
-        this.setState({ dayArray: response.data })
-      })
-      .catch(error => {
-        this.errorLog(error);
-      });
+    this.setState({ search: e.target.value });
   }
 
   errorLog = (error) => {
@@ -55,31 +42,21 @@ class Main extends React.Component {
   }
 
   render() {
+    console.log(this.state.weather);
     return (
       <div id="Main" >
         <Form>
           <Form.Label>Enter Location</Form.Label>
-          <Form.Control onChange={this.changeSearch} type="text" placeholder="Seattle" style={{ width: '40%', margin: '0 auto' }} />
-          <Button variant="success" onClick={this.searchLocation}>Explore!</Button>
+          <Form.Control onChange={this.changeSearch} type="text" placeholder="Search location here!" style={{ width: '40%', margin: '0 auto' }} />
+          <Button variant="success" onClick={this.fetchLocationData}>Explore!</Button>
         </Form>
-        {this.state.toggle ?
-          <Card variant="success" style={{ width: '25rem', margin: '0 auto' }}>
-            <Card.Img src={this.state.maps_url} alt="Google maps image" />
-            <Card.Title>{this.state.data.display_name}</Card.Title>
-            <Card.Text>Latitude: {this.state.data.lat}</Card.Text>
-            <Card.Text>Longitude: {this.state.data.lon}</Card.Text>
-          </Card>
-          : ''
-        }
-        <Button onClick={this.getWeather}>Get weather data</Button>
-        <Card>
-          {this.state.dayArray.forEach(item => {
-            { console.log(item) }
-            return <DayCard
-              day={item}
-            />
-          })}
+        <Card variant="success" style={{ width: '25rem', margin: '0 auto' }}>
+          <Card.Img src={this.state.mapURL.data} alt="Map image of location" />
+          <Card.Title>{this.state.location.display_name}</Card.Title>
+          <Card.Text>Latitude: {this.state.location.lat}</Card.Text>
+          <Card.Text>Longitude: {this.state.location.lon}</Card.Text>
         </Card>
+        <Button onClick={this.fetchWeatherData}>Get weather data</Button>
       </div >
     );
   }
