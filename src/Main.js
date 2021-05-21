@@ -4,7 +4,9 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import Card from 'react-bootstrap/Card';
+import RenderMap from './RenderMap.js';
+import RenderMovies from './RenderMovies.js';
+import RenderWeather from './RenderWeather.js';
 
 class Main extends React.Component {
   constructor() {
@@ -14,40 +16,45 @@ class Main extends React.Component {
       location: {},
       mapURL: '',
       weather: {},
-      movies: {},
+      movies: '',
     }
   }
 
+  fetchLocationData = async () => {
+    let response = await axios.get(`${process.env.REACT_APP_SERVER}/location?searchQuery=${this.state.search}`);
+    this.setState({ location: response.data });
+    await this.fetchMapData();
+    await this.fetchWeatherData();
+    await this.fetchMovieData();
+  }
+
   fetchMapData = async () => {
-    let response = await axios.get(`http://localhost:3030/map?lon=${this.state.location.lon}&lat=${this.state.location.lat}`);
+    let response = await axios.get(`${process.env.REACT_APP_SERVER}/map?lon=${this.state.location.lon}&lat=${this.state.location.lat}`);
     this.setState({ mapURL: response });
   }
 
-  fetchLocationData = async () => {
-    let response = await axios.get(`http://localhost:3030/location?searchQuery=${this.state.search}`);
-    this.setState({ location: response.data });
-    await this.fetchMapData();
-  }
-
   fetchWeatherData = async () => {
-    let response = await axios.get(`http://localhost:3030/weather?lon=${this.state.location.lon}&lat=${this.state.location.lat}`);
-    this.setState({ weather: response });
+    let response = await axios.get(`${process.env.REACT_APP_SERVER}/weather?lon=${this.state.location.lon}&lat=${this.state.location.lat}`);
+    this.setState({ weather: response.data[0] });
   }
 
   fetchMovieData = async () => {
-    let response = await axios.get(`http://localhost:3030/movies?lon=${this.state.location.lon}&lat=${this.state.location.lat}`);
-    this.setState({ movies: response });
+    let response = await axios.get(`${process.env.REACT_APP_SERVER}/movies?searchQuery=${this.state.search}`);
+    this.setState({ movies: response.data });
   }
 
   changeSearch = (e) => {
     this.setState({ search: e.target.value });
   }
 
-  errorLog = (error) => {
-    console.error(error);
+  // Error handling function
+  Error = () => {
+    this.setState({ error: error.toString() })
+    this.setState({ showError: true })
   }
 
   render() {
+    console.log(this.state.movies);
     return (
       <div id="Main" >
         <Form>
@@ -55,22 +62,22 @@ class Main extends React.Component {
           <Form.Control onChange={this.changeSearch} type="text" placeholder="Search location here!" style={{ width: '40%', margin: '0 auto' }} />
           <Button variant="success" onClick={this.fetchLocationData}>Explore!</Button>
         </Form>
-        <Card style={{ width: '25rem', margin: '0 auto' }}>
-          <Card.Img src={this.state.mapURL.data} alt="Map image of location" />
-          <Card.Title>{this.state.location.display_name}</Card.Title>
-          <Card.Text>Latitude: {this.state.location.lat}</Card.Text>
-          <Card.Text>Longitude: {this.state.location.lon}</Card.Text>
-        </Card>
-        <Button onClick={this.fetchWeatherData}>Get weather data</Button>
-        <Card style={{ width: '25rem', margin: '0 auto' }}>
-          <Card.Text>On {this.state.weather.datetime}</Card.Text>
-          <Card.Text>The temp was: {this.state.weather.temp} celcius</Card.Text>
-        </Card>
-        <Button onClick={this.fetchMovieData}>Get Movie data</Button>
-        <Card style={{ width: '25rem', margin: '0 auto' }}>
-          <Card.Title variant="info">Top movie from this area:</Card.Title>
-          <Card.Text>{this.state.movies.data}</Card.Text>
-        </Card>
+        { this.state.movies ?
+          <>
+            <RenderMap
+              mapURL={this.state.mapURL}
+              location={this.state.location}
+            />
+            <RenderWeather
+              displayDate={this.state.weather.datetime}
+              displayappTemp={this.state.weather.app_temp}
+              displayCloudLevel={this.state.weather.weather.description}
+            />
+            <RenderMovies
+              movieData={this.state.movies}
+            />
+          </>
+          : null}
       </div >
     );
   }
