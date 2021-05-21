@@ -54,7 +54,6 @@ class Main extends React.Component {
   }
 
   render() {
-    console.log(this.state.movies);
     return (
       <div id="Main" >
         <Form>
